@@ -13,7 +13,10 @@ import com.puskal.merocalendar.model.DateModel
 /**created by Puskal
  * 30 May, 2021
  */
-public class EventCalendarAdapter(val dateClickListener: DateClickListener? = null) :
+class EventCalendarAdapter(
+    private val dateClickListener: DateClickListener? = null,
+    private val weekendDay: Int
+) :
     RecyclerView.Adapter<EventCalendarAdapter.VH>() {
     private var dateList = arrayListOf<DateModel>()
     var currentSelectionPos = -1
@@ -33,20 +36,20 @@ public class EventCalendarAdapter(val dateClickListener: DateClickListener? = nu
     }
 
     override fun onBindViewHolder(holder: VH, position: Int) {
-        holder.bind(dateList[position], dateClickListener)
+        holder.bind(dateList[position], dateClickListener, weekendDay)
     }
 
     fun addItem(list: List<DateModel>) {
         dateList.clear()
         dateList.addAll(list)
-        currentSelectionPos=-1
+        currentSelectionPos = -1
         notifyDataSetChanged()
     }
 
 
     inner class VH(val binding: ItemEnglishCalendarBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: DateModel, dateClickListener: DateClickListener?) {
+        fun bind(item: DateModel, dateClickListener: DateClickListener?, weekendDay: Int) {
             with(binding) {
                 tv.text = item.displayedDayInCalendar
 
@@ -57,6 +60,7 @@ public class EventCalendarAdapter(val dateClickListener: DateClickListener? = nu
                             R.color.mero_primary_color
                         )
                     )
+
                 } else {
                     tv.setTextColor(
                         ContextCompat.getColor(
@@ -72,29 +76,38 @@ public class EventCalendarAdapter(val dateClickListener: DateClickListener? = nu
                 if (item.hasEvent) {
                     tv.apply {
                         setTextColor(ContextCompat.getColor(binding.root.context, R.color.white))
-                        background = ContextCompat.getDrawable(root.context, R.drawable.rounded_button)
+                        background =
+                            ContextCompat.getDrawable(root.context, R.drawable.rounded_button)
                         var color = try {
                             Color.parseColor(item.eventColorCode)
                         } catch (e: Exception) {
                             Color.parseColor("#3326324A")
                         }
-                        backgroundTintList= ColorStateList.valueOf(color)
+                        backgroundTintList = ColorStateList.valueOf(color)
 
                     }
                 } else {
                     tv.background = null
-                   tv.backgroundTintList=null
+                    tv.backgroundTintList = null
 
                 }
 
-                if (adapterPosition.plus(1) % 7 == 0) {
-                  tv.setTextColor(ContextCompat.getColor(binding.root.context,R.color.holiday_sat_color))
+
+                (0..6).forEach { week ->
+                    if (adapterPosition.plus(1) == 7 * week + weekendDay) {
+                        tv.setTextColor(
+                            ContextCompat.getColor(
+                                binding.root.context,
+                                R.color.holiday_sat_color
+                            )
+                        )
+                    }
                 }
 
                 with(binding) {
                     clDate.setOnClickListener {
 
-                        if (adapterPosition>6 && currentSelectionPos != adapterPosition) {
+                        if (adapterPosition > 6 && currentSelectionPos != adapterPosition) {
                             dateClickListener?.let {
                                 dateClickListener!!.onDateClick(item)
                             }
@@ -105,7 +118,8 @@ public class EventCalendarAdapter(val dateClickListener: DateClickListener? = nu
                     }
 
                     if (currentSelectionPos == adapterPosition) {
-                        binding.flDate.background = ContextCompat.getDrawable(root.context, R.drawable.selected_date_bg)
+                        binding.flDate.background =
+                            ContextCompat.getDrawable(root.context, R.drawable.selected_date_bg)
                     } else {
                         binding.flDate.background = null
                     }

@@ -25,6 +25,7 @@ class MeroCalendarView : LinearLayout {
     private var eventList: ArrayList<EventModel> = arrayListOf()
     private var monthChangeListener: MonthChangeListener? = null
     private var dateClickListener: DateClickListener? = null
+    private var weekendDay: Int = 7
     private var currentMonthDateList = arrayListOf<DateModel>()
 
 
@@ -73,9 +74,17 @@ class MeroCalendarView : LinearLayout {
         return this
     }
 
+    /**
+     * set weekend day because saturday is not weekend in all country
+     */
+    fun setWeekendDay(day: Int): MeroCalendarView {
+        weekendDay = day
+        return this
+    }
+
 
     private val calAdapter: EventCalendarAdapter by lazy {
-        EventCalendarAdapter(dateClickListener)
+        EventCalendarAdapter(dateClickListener, weekendDay)
     }
 
     private fun todayMonthYear(calendarInstance: Calendar): Pair<Int, Int> {
@@ -101,11 +110,11 @@ class MeroCalendarView : LinearLayout {
 
     private fun initCalendar() {
         val calendar = Calendar.getInstance()
-        val todayMonthYrs=todayMonthYear(calendar)
+        val todayMonthYrs = todayMonthYear(calendar)
         var currentMonth = todayMonthYrs.first
         var currentYear = todayMonthYrs.second
 
-        setAdapter(currentMonth, currentYear,true)
+        setAdapter(currentMonth, currentYear, true)
 
         binding.rvCalendar.apply {
             adapter = calAdapter
@@ -132,7 +141,7 @@ class MeroCalendarView : LinearLayout {
         }
         with(binding) {
             tvToday.setOnClickListener {
-                var today=  todayMonthYear(calendar)
+                var today = todayMonthYear(calendar)
                 currentMonth = today.first
                 currentYear = today.second
                 setAdapter(currentMonth, currentYear, true)
@@ -154,9 +163,14 @@ class MeroCalendarView : LinearLayout {
         currentMonthDateList.addAll(dateList)
         binding.tvDate.text = title
 
-        val validDateList=dateList.filter { it.todayWeekDay!=0}
+        val validDateList = dateList.filter { it.todayWeekDay != 0 }
         if (isMonthChange) {
-            monthChangeListener?.onMonthChange(validDateList.first(),validDateList.last(),currentYear, currentMonth)
+            monthChangeListener?.onMonthChange(
+                validDateList.first(),
+                validDateList.last(),
+                currentYear,
+                currentMonth
+            )
         }
         setEvent(eventList)  //set date in adapter + set event if available
 
@@ -189,8 +203,9 @@ class MeroCalendarView : LinearLayout {
                 val to_m = toDate[1].toInt()
                 val to_d = toDate[2].toInt()
 
-                val fromDateLong="$from_y${decFormat.format(from_m)}${decFormat.format(from_d)}".toLong()
-                val toDateLong="$to_y${decFormat.format(to_m)}${decFormat.format(to_d)}".toLong()
+                val fromDateLong =
+                    "$from_y${decFormat.format(from_m)}${decFormat.format(from_d)}".toLong()
+                val toDateLong = "$to_y${decFormat.format(to_m)}${decFormat.format(to_d)}".toLong()
 
                 for (dateModel in currentMonthDateList) {
 
@@ -203,8 +218,9 @@ class MeroCalendarView : LinearLayout {
                     val date_m = date[1].toInt()
                     val date_d = date[2].toInt()
 
-                    val currentDateLong="$date_y${decFormat.format(date_m)}${decFormat.format(date_d)}".toLong()
-                    if(currentDateLong in fromDateLong..toDateLong){
+                    val currentDateLong =
+                        "$date_y${decFormat.format(date_m)}${decFormat.format(date_d)}".toLong()
+                    if (currentDateLong in fromDateLong..toDateLong) {
                         dateModel.hasEvent = true
                         dateModel.eventColorCode = event.colorCode
                         dateModel.isHoliday = event.isHolidayEvent
@@ -223,6 +239,10 @@ class MeroCalendarView : LinearLayout {
      */
     fun build() {
         initCalendar()
+    }
+
+    fun switchDisplayMonth(month: Int, year: Int = todayMonthYear(Calendar.getInstance()).second) {
+        setAdapter(month, year, true)
     }
 
 
