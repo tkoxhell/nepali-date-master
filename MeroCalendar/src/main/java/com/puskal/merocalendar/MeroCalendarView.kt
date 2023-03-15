@@ -241,8 +241,8 @@ class MeroCalendarView : LinearLayout {
         initCalendar()
     }
 
-    fun switchDisplayMonth(month: Int, year: Int = todayMonthYear(Calendar.getInstance()).second) {
-        setAdapter(month, year, true)
+    fun changeMonth(invokeListener: Boolean, month: Int, year: Int = todayMonthYear(Calendar.getInstance()).second) {
+        setAdapter(month, year,invokeListener)
     }
 
 
