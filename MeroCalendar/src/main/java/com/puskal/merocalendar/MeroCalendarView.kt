@@ -131,13 +131,15 @@ class MeroCalendarView : LinearLayout {
         }
 
         binding.ivArrowRight.setOnClickListener {
-            if (currentMonth == 12) {
-                currentMonth = 1
-                currentYear += 1
-            } else {
-                currentMonth += 1
+            if (binding.ivArrowRight.isEnabled) {
+                if (currentMonth == 12) {
+                    currentMonth = 1
+                    currentYear += 1
+                } else {
+                    currentMonth += 1
+                }
+                setAdapter(currentMonth, currentYear, true)
             }
-            setAdapter(currentMonth, currentYear, true)
         }
         with(binding) {
             tvToday.setOnClickListener {
@@ -245,5 +247,9 @@ class MeroCalendarView : LinearLayout {
         setAdapter(month, year,invokeListener)
     }
 
+    fun disableNextMonthClick(): MeroCalendarView {
+        binding.ivArrowRight.isEnabled = false
+        return this
+    }
 
 }
