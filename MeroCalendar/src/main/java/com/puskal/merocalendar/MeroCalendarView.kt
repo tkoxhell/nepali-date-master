@@ -27,6 +27,7 @@ class MeroCalendarView : LinearLayout {
     private var dateClickListener: DateClickListener? = null
     private var weekendDay: Int = 7
     private var currentMonthDateList = arrayListOf<DateModel>()
+    private var disableNextInCurrentMonth: Boolean = false
 
 
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
@@ -176,6 +177,14 @@ class MeroCalendarView : LinearLayout {
         }
         setEvent(eventList)  //set date in adapter + set event if available
 
+        val today = todayMonthYear(Calendar.getInstance())
+        if (disableNextInCurrentMonth && currentMonth == today.first && currentYear == today.second) {
+            // Disable "Next" button if the user wants to disable it for the current month
+            binding.ivArrowRight.isEnabled = false
+        } else {
+            // Enable "Next" button for other months or if the feature is not enabled
+            binding.ivArrowRight.isEnabled = true
+        }
 
     }
 
@@ -247,8 +256,8 @@ class MeroCalendarView : LinearLayout {
         setAdapter(month, year,invokeListener)
     }
 
-    fun disableNextMonthClick(): MeroCalendarView {
-        binding.ivArrowRight.isEnabled = false
+    fun disableNextMonthInCurrentMonth(disable: Boolean): MeroCalendarView {
+        this.disableNextInCurrentMonth = disable
         return this
     }
 
