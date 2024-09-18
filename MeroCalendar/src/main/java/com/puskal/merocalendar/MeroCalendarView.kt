@@ -18,6 +18,7 @@ import java.util.*
 /**@author Puskal Khadka
  * 3 july, 2021
  */
+
 class MeroCalendarView : LinearLayout {
     private var calendarType: CalendarType = CalendarType.AD
     private var language: LocalizationType = LocalizationType.ENGLISH_US
@@ -28,18 +29,16 @@ class MeroCalendarView : LinearLayout {
     private var weekendDay: Int = 7
     private var currentMonthDateList = arrayListOf<DateModel>()
     private var disableNextInCurrentMonth: Boolean = false
-
+    private var disablePreviousInFirstMonth: Boolean = false
 
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
         loadUi(context, attrs)
     }
 
-
     private fun loadUi(context: Context, attrs: AttributeSet?) {
         val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         binding = DataBindingUtil.inflate(inflater, R.layout.layout_calendar_with_event, this, true)
     }
-
 
     /**
      * For showing English (Ad) or nepali (BS) calendar
@@ -97,6 +96,7 @@ class MeroCalendarView : LinearLayout {
                 currentMonth = calendarInstance.get(Calendar.MONTH).plus(1)
                 currentYear = calendarInstance.get(Calendar.YEAR)
             }
+
             else -> {
                 val todayNepaliDate = DateUtils.getNepaliDate(Date(calendarInstance))
                 currentMonth = todayNepaliDate.month
@@ -177,17 +177,12 @@ class MeroCalendarView : LinearLayout {
         }
         setEvent(eventList)  //set date in adapter + set event if available
 
-        val today = todayMonthYear(Calendar.getInstance())
-        if (disableNextInCurrentMonth && currentMonth == today.first && currentYear == today.second) {
-            // Disable "Next" button if the user wants to disable it for the current month
-            binding.ivArrowRight.isEnabled = false
-        } else {
-            // Enable "Next" button for other months or if the feature is not enabled
-            binding.ivArrowRight.isEnabled = true
-        }
+        updateArrowsState(
+            currentMonth = currentMonth,
+            currentYear = currentYear
+        )
 
     }
-
 
     /**
      * Set event to the calendar
@@ -252,13 +247,40 @@ class MeroCalendarView : LinearLayout {
         initCalendar()
     }
 
-    fun changeMonth(invokeListener: Boolean, month: Int, year: Int = todayMonthYear(Calendar.getInstance()).second) {
-        setAdapter(month, year,invokeListener)
+    fun changeMonth(
+        invokeListener: Boolean,
+        month: Int,
+        year: Int = todayMonthYear(Calendar.getInstance()).second
+    ) {
+        setAdapter(month, year, invokeListener)
     }
 
     fun disableNextMonthInCurrentMonth(disable: Boolean): MeroCalendarView {
         this.disableNextInCurrentMonth = disable
         return this
+    }
+
+    fun disablePreviousMonthInFirstMonth(disable: Boolean): MeroCalendarView {
+        this.disablePreviousInFirstMonth = disable
+        return this
+    }
+
+    private fun updateArrowsState(currentMonth: Int, currentYear: Int) {
+        val today = todayMonthYear(Calendar.getInstance())
+
+        // Disable back arrow if it's the first month of the year and the option to disable it is enabled
+        if (disablePreviousInFirstMonth && currentMonth == 1 && currentYear == today.second) {
+            binding.ivArrowLeft.isEnabled = false
+        } else {
+            binding.ivArrowLeft.isEnabled = true
+        }
+
+        // Disable forward arrow if it's the current month and year, and disableNextInCurrentMonth is true
+        if (disableNextInCurrentMonth && currentMonth == today.first && currentYear == today.second) {
+            binding.ivArrowRight.isEnabled = false
+        } else {
+            binding.ivArrowRight.isEnabled = true
+        }
     }
 
 }
